@@ -1,0 +1,40 @@
+column,dtype,missing_rate,n_unique,unique_rate,p01,p50,p99,skew,top_values
+description,object,0.9256177821929715,164,0.02036508133614802,,,,,"nan:7454; **Click the magic wand icon on the pictures to virtually stage each room on Zillow!** ONLY home in New Braunfels with a pool listed under $350k (4/4/26)!! Discover your dream home in this meticulously maintained single-family residence, featuring your own personal in-ground pool for those warm, sunny Texas days! This move-in-ready property features an open-concept floor plan designed for seamless living, highlighted by a gourmet kitchen with energy-efficient stainless steel appliances and expansive living areas that maximize natural light. The spacious primary suite serves as a private sanctuary with a spa-like bathroom and generous walk-in closet. Families will appreciate the premier location within the esteemed New Braunfels ISD, with County Line Elementary and New Braunfels Middle School conveniently located less than a mile away, ensuring a top-tier educational experience for every student.    Experience unparalleled convenience with an easy, stress-free commute of under 30 minutes to Joint Base San Antonio-Randolph and JBSA-Fort Sam Houston, making this an ideal location for military families and commuters alike. Situated within a 5-mile radius of the city's best attractions, you are minutes away from the world-famous Schlitterbahn Waterpark, the historic Gruene District, and the scenic beauty of Landa Park and the Comal River. For those who love to shop and dine, the Town Center at Creekside offers major retailers and entertainment just a short drive from your front door. Whether you are looking for a vibrant community or a quiet suburban feel, this residence provides the ultimate lifestyle balance. Schedule your private tour today to explore this exceptional property and see why it is the perfect place to call home.:10; Buyers in this price range often feel like they have to choose between a home that looks updated or one that actually gives them enough space to live comfortably, but this one manages to bring both together in a way that's hard to ignore.    This home is part of a Certified Pre-Owned program, meaning it has already been pre-inspected and comes with a buyer warranty, so you're walking in with a clearer understanding of the home and fewer unknowns from the start.    Located in Lonesome Dove Subdivision, you're in an established part of Killeen where the neighborhood feels settled and consistent. There is no HOA, and the community is not a gated community, which keeps ownership simple without added restrictions.    Inside, the single story layout feels easy to move through, with the main living areas naturally connecting in a way that makes everyday life feel comfortable, whether you're relaxing at home or hosting friends. Recent updates to the kitchen and bathrooms, along with new flooring, give the home a clean, move in ready feel without losing its practicality.    With four true bedrooms and two full baths, the layout offers flexibility that is not always easy to find at this price point, especially in an established neighborhood like this.    The lot sits at approximately 0.179 acres, giving you enough outdoor space to enjoy without turning into a constant project.    Homes that offer this combination of updates, layout, and bedroom count do not come around often in this area. See it in person and decide how it compares to what else is available.:9"
+listing_url,object,0.723332919408916,2228,0.2766670805910841,,,,,nan:5825; https://www.zillow.com/homedetails/5607-Cohn-Mdws-Houston-TX-77007/461606384_zpid/:1; https://www.zillow.com/homedetails/3938-Vauxhall-Dr-S-Houston-TX-77047/28482945_zpid/:1
+luxury_x_sqft,float64,0.0,7786,0.9668446541661493,24.143501108850288,52.20728761709505,86.50514864380033,0.2687015302043068,
+price_per_sqft,float64,0.0,7770,0.9648578169626226,58.00665371595746,145.68946094021803,324.47086520971646,1.7211393637261903,
+dist_to_houston_mi,float64,0.0,7746,0.9618775611573327,1.49874005656515,15.133946872547636,25.17117253961621,-0.2133063357427278,
+dist_to_location_center_mi,float64,0.0,7736,0.9606357879051285,0.01392822063432921,10.295772175806608,26.955080779377116,0.21406101385965648,
+latitude,float64,0.0,7733,0.9602632559294673,29.56606453990396,29.864717655489,30.08245831728907,-0.2203843943645505,
+longitude,float64,0.0,7707,0.9570346454737365,-95.69980855096497,-95.43331935959958,-95.10535133954022,0.15791846026795472,
+sqft_per_bedroom,float64,0.0,7180,0.891593195082578,326.94930607759386,598.6666666666666,1037.3026293584242,0.9853433033651778,
+sqft,float64,0.0,7090,0.8804172358127406,919.6732532829053,2008.0,3801.160484724018,0.492101594827667,
+price,float64,0.0,6542,0.8123680615919533,75006.3675675909,293120.23888789595,676902.3242832808,0.7216535035590009,
+lot_size,float64,0.0,6026,0.7482925617782193,0.283808,5477.623555143062,10632.362415441241,-0.2506901149249727,
+address,object,0.0,3905,0.4849124549857196,,,,,"7118 Meadow Hawk Ct, Houston, TX 77041 [aug]:12; 7910 Highmeadow Dr, Houston, TX 77063 [aug]:11; 8431 Dover St, Houston, TX 77061 [aug]:10"
+luxury_score,float64,0.0,842,0.10455730783558922,3.4652,6.86,11.09,0.36859099590151306,
+zipcode,float64,0.0,189,0.02346951446665839,76020.0,77071.0,78253.0,-0.2936562742419646,
+year_built,float64,0.0,108,0.013411151123804792,1930.0,1987.0,2026.0,-0.8551165286233419,
+property_age,float64,0.0,108,0.013411151123804792,0.0,39.0,96.0,0.8551165286233265,
+bath_per_bedroom,float64,0.0,99,0.01229355519682106,0.3333333333333333,0.75,1.55,0.8644893782426303,
+bed_bath_ratio,float64,0.0,98,0.012169377871600646,0.6451612903225806,1.3333333333333333,3.0,2.2794302624562945,
+location,object,0.0,69,0.008568235440208618,,,,,Houston:6328; Humble:473; Kingwood:383
+location_target_enc,float64,0.0,68,0.008444058114988204,249900.0,289900.0,442808.10186127305,4.73858901598788,
+bathrooms,float64,0.0,43,0.005339624984477835,0.9,2.9,4.2,0.06824721481193746,
+location_cluster,int64,0.0,8,0.000993418601763318,0.0,3.0,7.0,0.2857002150741022,
+property_type,object,0.0,7,0.0008692412765429032,,,,,single_family:5442; singlefamily:1424; townhouse:1005
+property_type_rarity,float64,0.0,7,0.0008692412765429032,0.3242269961505029,0.3242269961505029,0.9857196075996524,0.7870614104596901,
+amenity_count,int64,0.0,6,0.0007450639513224885,0.0,0.0,3.0,5.336321271974952,
+bedrooms,float64,0.0,4,0.000496709300881659,2.0,3.0,5.0,0.11560934806506194,
+source_file,object,0.0,4,0.000496709300881659,,,,,dataset_zillow-scraper_2026-04-09_22-54-52-472.csv:5731; zillow_property_blob:1723; Thunderbit_03efac_20260409_231459.csv:438
+data_tier,object,0.0,2,0.0002483546504408295,,,,,synthetic_augmented:5825; real_raw:2228
+is_synthetic_augment,bool,0.0,2,0.0002483546504408295,0.0,1.0,1.0,-0.9986557013127948,
+has_pool,int64,0.0,2,0.0002483546504408295,0.0,0.0,1.0,6.727525072641331,
+has_garage,int64,0.0,2,0.0002483546504408295,0.0,0.0,1.0,6.622531984694333,
+has_gym,int64,0.0,2,0.0002483546504408295,0.0,0.0,0.0,28.330199879052852,
+has_garden,int64,0.0,2,0.0002483546504408295,0.0,0.0,0.0,16.873550119498283,
+has_security,int64,0.0,2,0.0002483546504408295,0.0,0.0,1.0,8.94777264295337,
+has_fireplace,int64,0.0,2,0.0002483546504408295,0.0,0.0,1.0,7.974500798957578,
+has_office,int64,0.0,2,0.0002483546504408295,0.0,0.0,1.0,5.814829334086981,
+is_luxury_segment,int64,0.0,2,0.0002483546504408295,0.0,0.0,1.0,1.4931176115663183,
+state,object,0.0,1,0.00012417732522041475,,,,,TX:8053

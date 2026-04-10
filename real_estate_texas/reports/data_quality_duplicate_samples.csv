@@ -1,0 +1,201 @@
+address,price,sqft,bedrooms,bathrooms,zipcode
+"6018 Fairway Shores Ln, Porter, TX 77365",550000.0,3188.0,4.0,3.0,77365.0
+"3614 Garden Lake Dr, Humble, TX 77339",389000.0,2505.0,4.0,3.0,77339.0
+"3007 Creek Manor Dr, Humble, TX 77339",280000.0,2023.0,4.0,2.0,77339.0
+"7918 Cassie Pine Dr, Houston, TX 77016",278290.0,1412.0,3.0,2.0,77016.0
+"2738 Royal Thistle Dr, Houston, TX 77088",250000.0,1694.0,3.0,2.0,77088.0
+"3415 Honey Creek Dr, Houston, TX 77082",255000.0,1562.0,3.0,2.0,77082.0
+"7802 Bellerive Dr, Houston, TX 77036",319900.0,1933.0,4.0,2.0,77036.0
+"12606 Panther Villa Ct, Houston, TX 77099",269200.0,2184.0,3.0,4.0,77099.0
+"8015 Burning Hills Dr, Houston, TX 77071",368900.0,2301.0,4.0,2.0,77071.0
+"8102 Ashley Circle Dr S, Houston, TX 77071",484900.0,3459.0,4.0,4.0,77071.0
+"9602 S Petersham Dr, Houston, TX 77031",256800.0,1977.0,3.0,2.0,77031.0
+"12203 Wrenthorpe Dr, Houston, TX 77031",339900.0,2630.0,4.0,3.0,77031.0
+"8100 Creekbend Dr APT 156, Houston, TX 77071",85000.0,937.0,2.0,2.0,77071.0
+"5846 Ettrick Dr, Houston, TX 77035",290000.0,1441.0,3.0,2.0,77035.0
+"11618 Hillcroft Ave, Houston, TX 77035",200000.0,2062.0,4.0,2.0,77035.0
+"7203 Santa Rita Dr, Houston, TX 77083",250000.0,2116.0,4.0,2.0,77083.0
+"2507 Encreek Rd, Houston, TX 77068",330000.0,2933.0,5.0,3.0,77068.0
+"2702 Meandering Trl, Humble, TX 77339",249900.0,1422.0,4.0,2.0,77339.0
+"2414 Mills Creek Dr, Humble, TX 77339",339000.0,2251.0,4.0,3.0,77339.0
+"2119 Laurel Arbor Dr, Houston, TX 77014",288000.0,2270.0,3.0,2.0,77014.0
+"2200 Cypress Landing Dr Unit A3, Houston, TX 77090",130000.0,1272.0,2.0,3.0,77090.0
+"2415 Shadbury Ct, Humble, TX 77339",259000.0,1456.0,4.0,2.0,77339.0
+"1351 Trailwood Village Dr, Humble, TX 77339",375000.0,2511.0,4.0,3.0,77339.0
+"5317 Shady Maple Dr, Humble, TX 77339",259995.0,2073.0,4.0,2.0,77339.0
+"1403 Great Easton Ln, Houston, TX 77073",269000.0,2302.0,4.0,3.0,77073.0
+"1814 Wagon Gap Trl, Houston, TX 77090",307500.0,2761.0,4.0,3.0,77090.0
+"19610 Kingston Green Ln, Houston, TX 77073",229900.0,1515.0,3.0,2.0,77073.0
+"21339 S Kings Mill Ln, Kingwood, TX 77339",549000.0,4078.0,4.0,4.0,77339.0
+"2847 Banff Mountain Trl, Houston, TX 77038",295000.0,2945.0,3.0,3.0,77038.0
+"9110 Kentshire Dr #A-b, Houston, TX 77078",265000.0,1904.0,2.0,1.0,77078.0
+"10019 Meadow Mill Forest Ln, Houston, TX 77044",225000.0,1394.0,4.0,2.0,77044.0
+"4314 Donna Bell Ln, Houston, TX 77018",359000.0,1609.0,3.0,1.0,77018.0
+"5307 Arbor Bridge Ct, Kingwood, TX 77345",367000.0,2941.0,5.0,3.0,77345.0
+"3326 Allendale Park Ct, Porter, TX 77365",524000.0,2945.0,4.0,4.0,77365.0
+"13326-13326 Lake Chesdin Rd, Houston, TX 77044",489000.0,3815.0,4.0,3.0,77044.0
+"214 Emerald Thicket Ln, Huffman, TX 77336",254990.0,1860.0,3.0,3.0,77336.0
+"24407 Strong Pine Dr, Huffman, TX 77336",149900.0,1572.0,3.0,3.0,77336.0
+"6220 Arcadia Sound Ln, Porter, TX 77365",239000.0,1240.0,3.0,2.0,77365.0
+"4534 Brook Shadow Dr, Kingwood, TX 77345",430000.0,3163.0,4.0,4.0,77345.0
+"3623 Clover Creek Dr, Kingwood, TX 77345",490000.0,3217.0,4.0,4.0,77345.0
+"2907 Forest Garden Dr, Kingwood, TX 77345",395000.0,2867.0,4.0,3.0,77345.0
+"14011 Blazey Dr, Houston, TX 77095",549000.0,3640.0,4.0,4.0,77095.0
+"17334 Emerald Isle Dr, Houston, TX 77095",400000.0,2545.0,4.0,3.0,77095.0
+"17010 Poplar Hill St, Houston, TX 77095",424000.0,3280.0,5.0,4.0,77095.0
+"7118 Meadow Hawk Ct, Houston, TX 77041",275000.0,1534.0,3.0,2.0,77041.0
+"7945 Ellinger Ln, Houston, TX 77040",142500.0,1347.0,3.0,2.0,77040.0
+"3827 Wood Stone Walk Dr, Houston, TX 77084",275000.0,1445.0,3.0,2.0,77084.0
+"14602 Liscomb Dr, Houston, TX 77084",350000.0,3380.0,4.0,3.0,77084.0
+"17015 Jane Lynn Ln, Houston, TX 77070",270000.0,1860.0,4.0,2.0,77070.0
+"13007 Orchard Hollow Way, Houston, TX 77065",435000.0,2864.0,4.0,4.0,77065.0
+"7523 Highland Farms Rd, Houston, TX 77095",385000.0,2619.0,4.0,3.0,77095.0
+"8722 Iris Arbor Ln, Houston, TX 77095",330000.0,2384.0,3.0,2.0,77095.0
+"10202 Jockey Club Dr, Houston, TX 77065",285000.0,2461.0,3.0,3.0,77065.0
+"6607 Queensclub Dr, Houston, TX 77069",329000.0,2479.0,3.0,3.0,77069.0
+"7306 Log Hollow Dr, Houston, TX 77040",257900.0,1445.0,3.0,2.0,77040.0
+"12115 Kemerton Dr, Houston, TX 77099",235000.0,2187.0,3.0,3.0,77099.0
+"12009 Sandpiper Dr, Houston, TX 77035",209900.0,1520.0,3.0,3.0,77035.0
+"13134 Bamboo Forest Trl, Houston, TX 77044",187000.0,1360.0,3.0,2.0,77044.0
+"8646 Flower Path St, Houston, TX 77044",174900.0,947.0,2.0,1.0,77044.0
+"2507 Yuma Hills Cir, Crosby, TX 77532",356340.0,2734.0,4.0,4.0,77532.0
+"8618 Van Hut Ln, Houston, TX 77044",130000.0,1084.0,2.0,2.0,77044.0
+"13503 Navigate Point Ln, Houston, TX 77044",460000.0,3031.0,4.0,3.0,77044.0
+"2006 Running Springs Dr, Humble, TX 77339",265000.0,2130.0,4.0,3.0,77339.0
+"21218 Yew Ln, Houston, TX 77073",220000.0,1452.0,3.0,2.0,77073.0
+"1071 Verde Trails Dr, Houston, TX 77073",190000.0,1630.0,4.0,3.0,77073.0
+"1502 Spencer Glen Ln, Houston, TX 77073",265000.0,2240.0,4.0,3.0,77073.0
+"15510 Beecham Dr, Houston, TX 77068",499000.0,3624.0,4.0,3.0,77068.0
+"1618 Hamblen Rd, Humble, TX 77339",288000.0,1588.0,4.0,2.0,77339.0
+"20719 Burnt Amber Ln, Houston, TX 77073",358000.0,2838.0,4.0,4.0,77073.0
+"2402 Oak Shores Dr, Humble, TX 77339",389786.0,2987.0,4.0,3.0,77339.0
+"1926 Hoskins Dr, Houston, TX 77080",565000.0,2547.0,3.0,3.0,77080.0
+"9623 Vogue Ln, Houston, TX 77080",299900.0,1369.0,3.0,2.0,77080.0
+"1426 Freedonia Dr, Houston, TX 77055",599000.0,1811.0,3.0,2.0,77055.0
+"2115 Lexford Ln, Houston, TX 77080",649000.0,2390.0,4.0,2.0,77080.0
+"1214 Wycliffe Dr, Houston, TX 77043",395000.0,2060.0,3.0,4.0,77043.0
+"11815 Drexelbrook Dr, Houston, TX 77077",625000.0,3028.0,4.0,4.0,77077.0
+"10372 Briar Forest Dr, Houston, TX 77042",200000.0,1258.0,2.0,3.0,77042.0
+"7919 Twin Hills Dr, Houston, TX 77071",249990.0,3019.0,5.0,4.0,77071.0
+"7807 Secretariat Ln, Houston, TX 77071",154900.0,1540.0,3.0,2.0,77071.0
+"10225 S Gessner Rd, Houston, TX 77071",165000.0,1935.0,3.0,3.0,77071.0
+"310 Cypress Vis, Houston, TX 77094",415000.0,2336.0,3.0,3.0,77094.0
+"14447 Basalt Ln, Houston, TX 77077",564000.0,2316.0,3.0,3.0,77077.0
+"1027 Arrow Hill Rd, Houston, TX 77077",405000.0,2228.0,3.0,2.0,77077.0
+"3203 Creek Manor Dr, Humble, TX 77339",299000.0,2216.0,4.0,3.0,77339.0
+"1310 Golden Bear Ln, Humble, TX 77339",675000.0,3527.0,5.0,4.0,77339.0
+"1103 Suwanee Ln, Houston, TX 77090",295000.0,3360.0,5.0,4.0,77090.0
+"714 Golden Bear Ln, Humble, TX 77339",374990.0,2016.0,3.0,2.0,77339.0
+"2129 Lake Village Dr, Humble, TX 77339",224900.0,1844.0,3.0,3.0,77339.0
+"834 Darbydale Crossing Ln, Houston, TX 77090",169900.0,1805.0,3.0,3.0,77090.0
+"2067 Shadow Rock Dr, Humble, TX 77339",244900.0,1982.0,4.0,2.0,77339.0
+"3039 Cypress Island Dr, Houston, TX 77073",249990.0,2294.0,4.0,3.0,77073.0
+"3618 Riverwood Park Dr, Kingwood, TX 77345",269990.0,1997.0,3.0,2.0,77345.0
+"3506 Lost Lake Dr, Humble, TX 77339",349900.0,2608.0,4.0,3.0,77339.0
+"1710 Woodland Vista Dr, Humble, TX 77339",284900.0,3212.0,4.0,3.0,77339.0
+"3502 Fern River Dr, Kingwood, TX 77345",220000.0,2250.0,4.0,3.0,77345.0
+"4018 Cedar Forest Dr, Humble, TX 77339",275000.0,2280.0,4.0,2.0,77339.0
+"3215 Falling Brook Dr, Kingwood, TX 77345",289900.0,2373.0,4.0,3.0,77345.0
+"3747 Clear Falls Dr, Humble, TX 77339",240000.0,2251.0,3.0,3.0,77339.0
+"2712 Woodspring Acres Dr, Kingwood, TX 77345",329000.0,2367.0,4.0,3.0,77345.0
+"2810 Timber Country Way, Kingwood, TX 77345",599900.0,2982.0,4.0,4.0,77345.0
+"3203 Golden Willow Dr, Humble, TX 77339",230000.0,1448.0,4.0,3.0,77339.0
+"5902 Spring Lodge Dr, Kingwood, TX 77345",599900.0,3782.0,5.0,4.0,77345.0
+"9114 Hueni Rd, Porter, TX 77365",285000.0,1302.0,4.0,2.0,77365.0
+"12251 W Village Dr Unit B, Houston, TX 77039",100000.0,1623.0,3.0,3.0,77039.0
+"12251 W Village Dr Unit A, Houston, TX 77039",80000.0,1340.0,2.0,2.0,77039.0
+"10610 Wayward Wind Ln, Houston, TX 77064",269900.0,1937.0,3.0,3.0,77064.0
+"9818 Lynette Falls Dr, Houston, TX 77095",295000.0,1845.0,3.0,2.0,77095.0
+"2423 Chamberlain St, Houston, TX 77093",159900.0,808.0,2.0,1.0,77093.0
+"4012 Delta Rose St, Houston, TX 77018",455000.0,2123.0,3.0,3.0,77018.0
+"5921 Mountwood St #A/b, Houston, TX 77091",525000.0,3232.0,4.0,2.0,77091.0
+"253 De Boll St, Houston, TX 77022",319990.0,1616.0,3.0,4.0,77022.0
+"5317 Teodoro Ln, Houston, TX 77091",315990.0,1575.0,3.0,3.0,77091.0
+"4718 Blanton Blvd, Houston, TX 77092",419000.0,1860.0,3.0,2.0,77092.0
+"15806 Sulky Trail Ct, Houston, TX 77060",350000.0,1602.0,3.0,2.0,77060.0
+"11338 White Gate Ln, Houston, TX 77067",245000.0,2177.0,4.0,2.0,77067.0
+"2903 Valiant Scene Ct, Houston, TX 77038",215000.0,1983.0,3.0,3.0,77038.0
+"11927 Loveland Pass Dr, Houston, TX 77067",149900.0,1421.0,3.0,2.0,77067.0
+"12927 Iris Garden Ln, Houston, TX 77044",250000.0,1868.0,2.0,3.0,77044.0
+"10035 Meadow Mill Forest Ln, Houston, TX 77044",240000.0,1798.0,3.0,3.0,77044.0
+"10004 Haddick St, Houston, TX 77078",385000.0,2311.0,3.0,2.0,77078.0
+"9330 Laura Koppe Rd, Houston, TX 77078",138000.0,1107.0,3.0,1.0,77078.0
+"41 E Champions Colony, Houston, TX 77069",260000.0,1683.0,2.0,2.0,77069.0
+"13907 Calmont Dr, Houston, TX 77070",495000.0,3224.0,5.0,4.0,77070.0
+"10519 Cypresswood Dr, Houston, TX 77070",579000.0,2948.0,4.0,3.0,77070.0
+"16319 Pitch Pine Dr, Houston, TX 77070",220000.0,1296.0,3.0,2.0,77070.0
+"11922 Moorcreek Dr, Houston, TX 77070",315000.0,3034.0,4.0,4.0,77070.0
+"5430 Green Springs Dr, Houston, TX 77066",245000.0,3003.0,4.0,3.0,77066.0
+"15926 Millers Landing Ln, Houston, TX 77049",290000.0,2240.0,5.0,4.0,77049.0
+"8926 Langdon Ln, Houston, TX 77036",299900.0,1764.0,3.0,2.0,77036.0
+"2417 Jamestown Mall #24, Houston, TX 77057",190000.0,1520.0,2.0,3.0,77057.0
+"13910 Fraser Lake Ln, Houston, TX 77083",299000.0,2134.0,3.0,2.0,77083.0
+"3025 Walnut Bend Ln APT 21, Houston, TX 77042",112999.0,950.0,2.0,2.0,77042.0
+"8409 Soaring Sky Ln, Houston, TX 77063",589000.0,2959.0,4.0,4.0,77063.0
+"10026 Overbrook Ln, Houston, TX 77042",715000.0,2030.0,3.0,2.0,77042.0
+"8919 Inglebrook Ln, Houston, TX 77083",418500.0,2949.0,4.0,4.0,77083.0
+"13051 Meadowline Dr, Houston, TX 77082",295000.0,2632.0,4.0,3.0,77082.0
+"9700 Leawood Blvd APT 1806, Houston, TX 77099",79950.0,1068.0,2.0,2.0,77099.0
+"10830 Sela Ln, Houston, TX 77072",249000.0,1796.0,3.0,2.0,77072.0
+"9407 Meadowbriar Ln, Houston, TX 77063",324900.0,1524.0,3.0,2.0,77063.0
+"10047 Westpark Dr APT 33, Houston, TX 77042",124990.0,1123.0,2.0,2.0,77042.0
+"13798 Hollowgreen Dr #305, Houston, TX 77082",145000.0,1254.0,2.0,2.0,77082.0
+"7910 Highmeadow Dr, Houston, TX 77063",649000.0,2285.0,3.0,3.0,77063.0
+"7230 Edgemoor Dr, Houston, TX 77074",257000.0,1209.0,3.0,2.0,77074.0
+"13502 Verbena Ln, Houston, TX 77083",325000.0,2984.0,5.0,4.0,77083.0
+"16322 Hazy Pines Ct, Houston, TX 77059",490000.0,3214.0,4.0,4.0,77059.0
+"16374 Larkfield Dr, Houston, TX 77059",330000.0,2232.0,3.0,3.0,77059.0
+"15223 McConn St, Webster, TX 77598",239000.0,1295.0,3.0,2.0,77598.0
+"14807 Elk Hill Ct, Houston, TX 77062",250000.0,1420.0,3.0,2.0,77062.0
+"723 Lochnell Dr, Houston, TX 77062",360000.0,2308.0,4.0,3.0,77062.0
+"1418 San Sebastian Ln, Houston, TX 77058",399900.0,2106.0,4.0,2.0,77058.0
+"11323 Sagewood Dr, Houston, TX 77089",235000.0,1574.0,3.0,2.0,77089.0
+"4630 Creekbend Dr, Houston, TX 77035",489900.0,2252.0,3.0,2.0,77035.0
+"9771 Rambling Trl, Houston, TX 77089",285000.0,2598.0,4.0,3.0,77089.0
+"2919 Crown Gate Dr, Houston, TX 77047",325000.0,1880.0,3.0,3.0,77047.0
+"4501 Waycross Dr, Houston, TX 77035",489000.0,2335.0,3.0,2.0,77035.0
+"3114 Bolt St, Houston, TX 77051",239900.0,1724.0,3.0,3.0,77051.0
+"4827 Knotty Oaks Trl, Houston, TX 77045",250000.0,1504.0,3.0,2.0,77045.0
+"11726 Dandy Park Ct, Houston, TX 77047",289000.0,1860.0,3.0,2.0,77047.0
+"8431 Dover St, Houston, TX 77061",160000.0,2191.0,3.0,2.0,77061.0
+"8428 Swiftwater Ln, Houston, TX 77075",199000.0,1526.0,3.0,2.0,77075.0
+"11930 Jelicoe Dr, Houston, TX 77047",240000.0,1380.0,3.0,3.0,77047.0
+"11603 Main Spruce Dr, Houston, TX 77025",325000.0,2168.0,3.0,3.0,77025.0
+"10523 Sageburrow Dr, Houston, TX 77089",310999.0,2121.0,3.0,2.0,77089.0
+"10910 Sagevale Ln, Houston, TX 77089",269990.0,2240.0,4.0,3.0,77089.0
+"13818 White Heather Dr, Houston, TX 77045",433000.0,2309.0,3.0,2.0,77045.0
+"16519 Twinwalker Dr, Houston, TX 77049",319950.0,1871.0,4.0,3.0,77049.0
+"5950 Carpenters Hollow Ct, Houston, TX 77049",259900.0,1607.0,3.0,2.0,77049.0
+"13715 Whitchurch Way, Houston, TX 77015",239900.0,2028.0,4.0,3.0,77015.0
+"13903 Wadebridge Way, Houston, TX 77015",242990.0,1491.0,3.0,2.0,77015.0
+"263 Wood Loop St, Houston, TX 77015",469999.0,2848.0,3.0,3.0,77015.0
+"16111 Marcelia Dr, Houston, TX 77049",273000.0,2369.0,3.0,3.0,77049.0
+"130 Sugarberry Cir, Houston, TX 77024",649000.0,3015.0,3.0,4.0,77024.0
+"10152 Longmont Dr #38/10, Houston, TX 77042",245000.0,1416.0,2.0,3.0,77042.0
+"4122 Sablechase Dr, Houston, TX 77014",242000.0,2633.0,5.0,3.0,77014.0
+"6402 Modesto Dr, Houston, TX 77083",380000.0,2546.0,4.0,3.0,77083.0
+"16134 Beechnut St, Houston, TX 77083",275000.0,1673.0,3.0,2.0,77083.0
+"7346 Camino Verde Dr, Houston, TX 77083",284900.0,1669.0,3.0,2.0,77083.0
+"3831 E Traditions Ct, Houston, TX 77082",175000.0,1316.0,3.0,2.0,77082.0
+"15427 Rio Plaza Dr, Houston, TX 77083",225000.0,1992.0,3.0,2.0,77083.0
+"14834 La Rana Dr, Houston, TX 77083",235000.0,2178.0,4.0,3.0,77083.0
+"10937 Fire Creek Dr, Houston, TX 77043",374900.0,1667.0,3.0,3.0,77043.0
+"14703 Barryknoll Ln APT 11, Houston, TX 77079",165000.0,1406.0,3.0,3.0,77079.0
+"10972 Hewitt Cliff Ln, Houston, TX 77043",520000.0,2249.0,4.0,4.0,77043.0
+"1722 Crownover Rd, Houston, TX 77080",519000.0,1720.0,3.0,2.0,77080.0
+"2121 Hoskins Dr #D, Houston, TX 77080",389900.0,1980.0,3.0,4.0,77080.0
+"10488 Hammerly Blvd #81, Houston, TX 77043",167500.0,1452.0,2.0,3.0,77043.0
+"12235 W Village Dr Unit D, Houston, TX 77039",110000.0,1563.0,3.0,2.0,77039.0
+"12239 W Village Dr Unit B, Houston, TX 77039",99990.0,1534.0,3.0,2.0,77039.0
+"21110 Brushy Canyon Dr, Houston, TX 77073",208900.0,1795.0,4.0,2.0,77073.0
+"19714 Regal Crest Ct, Houston, TX 77073",219000.0,1535.0,3.0,2.0,77073.0
+"21002 Vista Trace Dr, Houston, TX 77073",210000.0,1585.0,3.0,2.0,77073.0
+"4002 Charriton Dr, Houston, TX 77039",195000.0,2407.0,4.0,4.0,77039.0
+"17718 Cypress Laurel St, Houston, TX 77095",430000.0,3147.0,4.0,3.0,77095.0
+"15414 Swan Creek Dr, Houston, TX 77095",365000.0,1405.0,3.0,2.0,77095.0
+"17338 Kiowa River Ln, Houston, TX 77095",374990.0,2869.0,4.0,3.0,77095.0
+"15947 Pinyon Creek Dr, Houston, TX 77095",318800.0,2333.0,4.0,3.0,77095.0
+"10103 Heron Meadows Dr, Houston, TX 77095",525000.0,4032.0,5.0,4.0,77095.0
+"10406 Comanche Springs Ct, Houston, TX 77095",325000.0,2814.0,4.0,3.0,77095.0
+"17614 Morning Dawn Ct, Houston, TX 77095",425000.0,2559.0,4.0,2.0,77095.0
+"16322 Drystone Ln, Houston, TX 77095",399999.0,2839.0,4.0,3.0,77095.0

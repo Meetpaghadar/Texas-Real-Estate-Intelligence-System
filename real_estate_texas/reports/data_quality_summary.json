@@ -1,0 +1,24 @@
+{
+  "rows": 8053,
+  "columns": 39,
+  "missing_columns_over_20pct": [
+    "description",
+    "listing_url"
+  ],
+  "high_cardinality_columns_over_80pct_unique": [
+    "luxury_x_sqft",
+    "price_per_sqft",
+    "dist_to_houston_mi",
+    "dist_to_location_center_mi",
+    "latitude",
+    "longitude",
+    "sqft_per_bedroom",
+    "sqft",
+    "price"
+  ],
+  "duplicates": {
+    "duplicate_listing_url_rows": 0,
+    "duplicate_address_price_rows": 440,
+    "duplicate_signature_rows": 440
+  }
+}

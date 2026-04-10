@@ -1,0 +1,6 @@
+__pycache__/
+.venv/
+*.pyc
+.ipynb_checkpoints/
+# Recommender n×n matrix can be huge; pipeline.pkl is usually fine to version or ignore as you prefer
+models/recommender_artifact.pkl

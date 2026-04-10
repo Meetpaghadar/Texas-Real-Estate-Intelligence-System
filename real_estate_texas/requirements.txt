@@ -1,0 +1,17 @@
+numpy
+pandas
+scikit-learn
+scipy
+requests
+xgboost
+joblib
+matplotlib
+seaborn
+plotly
+streamlit
+wordcloud
+jupyter
+notebook
+kagglehub
+beautifulsoup4
+selenium
