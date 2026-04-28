@@ -4,11 +4,8 @@
 
 🔗 **Live App**: https://meet-real-estate.streamlit.app/  
 📂 **Repository**: https://github.com/Meetpaghadar/real_estate  
-
 ---
-
-## ⚡ Technical Snapshot (Read This First)
-
+## ⚡ Technical Snapshot
 - Built a **full ML pipeline (sklearn Pipeline)** with:
   - OneHot Encoding + Target Encoding  
   - PCA for dimensionality reduction  
