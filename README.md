@@ -3,7 +3,6 @@
 🚀 Deployed ML system on AWS EC2 with real-time inference  
 
 🔗 **Live App**: https://meet-real-estate.streamlit.app/  
-📂 **Repository**: https://github.com/Meetpaghadar/real_estate  
 ---
 ## ⚡ Technical Snapshot
 - Built a **full ML pipeline (sklearn Pipeline)** with:
