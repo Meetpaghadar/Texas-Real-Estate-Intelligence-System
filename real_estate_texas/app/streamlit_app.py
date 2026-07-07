@@ -14,12 +14,17 @@ if str(ROOT) not in sys.path:
 
 from src.recommender import encode_similarity_blocks, similarity_scores_for_row
 
-# Earth radius in miles (mean)
 _R_MI = 3958.7613
+HOUSTON_LAT, HOUSTON_LON = 29.7604, -95.3698
+
+st.set_page_config(page_title="Texas Real Estate Intelligence", layout="wide")
+st.title("Texas & Houston Real Estate Intelligence Dashboard")
+
+DATA_PATH = ROOT / "data/processed/texas_houston_features.csv"
+MODEL_PATH = ROOT / "models/pipeline.pkl"
 
 
 def _haversine_miles(lat: pd.Series, lon: pd.Series, lat0: float, lon0: float) -> np.ndarray:
-    """Great-circle distance from each row to (lat0, lon0)."""
     lat1 = np.radians(lat.astype(float).values)
     lon1 = np.radians(lon.astype(float).values)
     lat2 = np.radians(lat0)
@@ -30,11 +35,76 @@ def _haversine_miles(lat: pd.Series, lon: pd.Series, lat0: float, lon0: float) -
     return 2 * _R_MI * np.arcsin(np.sqrt(np.clip(h, 0.0, 1.0)))
 
 
-st.set_page_config(page_title="Texas Real Estate Intelligence", layout="wide")
-st.title("Texas & Houston Real Estate Intelligence Dashboard")
+def _default_for_column(df: pd.DataFrame, col: str):
+    if col not in df.columns:
+        return 0
+    s = df[col]
+    if pd.api.types.is_numeric_dtype(s):
+        return float(s.median())
+    mode = s.mode(dropna=True)
+    return mode.iloc[0] if len(mode) else ""
 
-DATA_PATH = ROOT / "data/processed/texas_houston_features.csv"
-MODEL_PATH = ROOT / "models/pipeline.pkl"
+
+def build_prediction_row(
+    df: pd.DataFrame,
+    feature_columns: list[str],
+    *,
+    bedrooms: float,
+    bathrooms: float,
+    sqft: float,
+    lot_size: float,
+    year_built: int,
+    location: str,
+    property_type: str,
+    latitude: float,
+    longitude: float,
+    price_per_sqft: float,
+    luxury_score: float,
+    amenity_count: int,
+) -> pd.DataFrame:
+    """Align inference row with training schema (all columns the fitted pipeline expects)."""
+    loc_mask = df["location"] == location
+    row: dict = {
+        "bedrooms": float(bedrooms),
+        "bathrooms": float(bathrooms),
+        "sqft": float(sqft),
+        "lot_size": float(lot_size),
+        "year_built": float(year_built),
+        "location": str(location),
+        "property_type": str(property_type),
+        "latitude": float(latitude),
+        "longitude": float(longitude),
+        "price_per_sqft": float(price_per_sqft),
+        "property_age": float(2026 - year_built),
+        "bed_bath_ratio": float(bedrooms / max(bathrooms, 1)),
+        "sqft_per_bedroom": float(sqft / max(bedrooms, 1)),
+        "bath_per_bedroom": float(bathrooms / max(bedrooms, 1)),
+        "location_target_enc": float(df.loc[loc_mask, "price"].median() if loc_mask.any() else df["price"].median()),
+        "amenity_count": int(amenity_count),
+        "luxury_score": float(luxury_score),
+        "luxury_x_sqft": float(luxury_score * np.log1p(max(sqft, 0))),
+        "is_luxury_segment": int(luxury_score >= df["luxury_score"].quantile(0.8)),
+        "dist_to_houston_mi": float(_haversine_miles(pd.Series([latitude]), pd.Series([longitude]), HOUSTON_LAT, HOUSTON_LON)[0]),
+    }
+    cent_lat = float(df.loc[loc_mask, "latitude"].median()) if loc_mask.any() else float(latitude)
+    cent_lon = float(df.loc[loc_mask, "longitude"].median()) if loc_mask.any() else float(longitude)
+    row["dist_to_location_center_mi"] = float(
+        _haversine_miles(pd.Series([latitude]), pd.Series([longitude]), cent_lat, cent_lon)[0]
+    )
+    type_freq = df["property_type"].astype(str).value_counts(normalize=True)
+    row["property_type_rarity"] = float(1.0 - type_freq.get(str(property_type), 0.0))
+
+    for flag in ["has_pool", "has_garage", "has_gym", "has_garden", "has_security", "has_fireplace", "has_office"]:
+        row[flag] = 0
+
+    if "location_cluster" in feature_columns and "location_cluster" in df.columns and loc_mask.any():
+        row["location_cluster"] = int(df.loc[loc_mask, "location_cluster"].mode().iloc[0])
+
+    out = pd.DataFrame([row])
+    for col in feature_columns:
+        if col not in out.columns:
+            out[col] = _default_for_column(df, col)
+    return out[feature_columns].copy()
 
 
 @st.cache_data
@@ -62,9 +132,8 @@ def _recommender_blocks_cached(path_str: str, mtime: float) -> dict:
 df = load_data()
 package = load_model()
 pipeline = package["pipeline"]
-feature_columns = package["feature_columns"]
+feature_columns = list(package["feature_columns"])
 
-# Derived columns for Analysis
 if "address" in df.columns:
     df["street"] = df["address"].fillna("").astype(str).str.split(",").str[0].str.strip()
     df.loc[df["street"].eq(""), "street"] = "(no address)"
@@ -96,30 +165,34 @@ with tabs[0]:
         luxury_score = st.number_input("Luxury score", value=float(df["luxury_score"].median()))
         amenity_count = st.slider("Amenity count", 0, 10, int(df["amenity_count"].median()))
 
-    input_row = {
-        "bedrooms": bedrooms,
-        "bathrooms": bathrooms,
-        "sqft": sqft,
-        "lot_size": lot_size,
-        "year_built": year_built,
-        "location": location,
-        "property_type": property_type,
-        "latitude": latitude,
-        "longitude": longitude,
-        "price_per_sqft": price_per_sqft,
-        "property_age": 2026 - year_built,
-        "bed_bath_ratio": bedrooms / max(bathrooms, 1),
-        "location_target_enc": float(df[df["location"] == location]["price"].median()),
-        "location_cluster": int(df[df["location"] == location]["location_cluster"].mode().iloc[0]),
-        "amenity_count": amenity_count,
-        "luxury_score": luxury_score,
-    }
-    pred_df = pd.DataFrame([input_row])[feature_columns]
-
     if st.button("Predict Price", type="primary"):
-        pred_log = pipeline.predict(pred_df)[0]
-        prediction = float(np.expm1(pred_log))
-        st.success(f"Estimated property price: ${prediction:,.0f}")
+        pred_df = None
+        try:
+            pred_df = build_prediction_row(
+                df,
+                feature_columns,
+                bedrooms=bedrooms,
+                bathrooms=bathrooms,
+                sqft=sqft,
+                lot_size=lot_size,
+                year_built=year_built,
+                location=location,
+                property_type=property_type,
+                latitude=latitude,
+                longitude=longitude,
+                price_per_sqft=price_per_sqft,
+                luxury_score=luxury_score,
+                amenity_count=amenity_count,
+            )
+            pred_log = pipeline.predict(pred_df)[0]
+            prediction = float(np.expm1(pred_log))
+            st.success(f"Estimated property price: ${prediction:,.0f}")
+        except Exception as exc:
+            st.error(f"Prediction failed: {exc}")
+            with st.expander("Debug (features sent to model)"):
+                st.write("Expected columns:", feature_columns)
+                if pred_df is not None:
+                    st.dataframe(pred_df)
 
 with tabs[1]:
     st.subheader("Market Analytics")
@@ -128,18 +201,15 @@ with tabs[1]:
     street_counts = df["street"].value_counts()
     top_streets = ["All"] + street_counts.head(80).index.tolist()
     loc_options = ["All"] + sorted(df["location"].dropna().unique().tolist())
-    cluster_options = ["All"] + [str(int(c)) for c in sorted(df["location_cluster"].dropna().unique())]
 
-    f1, f2, f3, f4, f5 = st.columns(5)
+    f1, f2, f3, f4 = st.columns(4)
     with f1:
         filt_location = st.selectbox("Location", loc_options, key="flt_loc")
     with f2:
-        filt_sector = st.selectbox("Sector (area cluster)", cluster_options, key="flt_sec")
-    with f3:
         filt_street = st.selectbox("Street", top_streets, key="flt_street")
-    with f4:
+    with f3:
         filt_bhk = st.selectbox("BHK (bedrooms)", ["All", "1", "2", "3", "4", "5+"], key="flt_bhk")
-    with f5:
+    with f4:
         pt_vals = sorted(df["property_type"].dropna().unique().tolist())
         filt_pt = st.selectbox("Property type", ["All"] + pt_vals, key="flt_pt")
 
@@ -153,8 +223,6 @@ with tabs[1]:
     d = df.copy()
     if filt_location != "All":
         d = d[d["location"] == filt_location]
-    if filt_sector != "All":
-        d = d[d["location_cluster"] == int(filt_sector)]
     if filt_street != "All":
         d = d[d["street"] == filt_street]
     if filt_bhk != "All":
@@ -172,18 +240,14 @@ with tabs[1]:
     with r1:
         box_group = st.selectbox(
             "Price box plot — group by",
-            ["location", "location_cluster", "property_type", "bedrooms", "street"],
+            ["location", "property_type", "bedrooms", "street"],
             key="chart_box_g",
-            help="Street is capped to top frequent streets in the filtered slice for readability.",
         )
         plot_box = d.copy()
         if box_group == "location":
             vc = plot_box["location"].value_counts().head(18).index
             plot_box = plot_box[plot_box["location"].isin(vc)]
             xcol = "location"
-        elif box_group == "location_cluster":
-            plot_box["location_cluster"] = plot_box["location_cluster"].astype(str)
-            xcol = "location_cluster"
         elif box_group == "property_type":
             xcol = "property_type"
         elif box_group == "bedrooms":
@@ -206,46 +270,26 @@ with tabs[1]:
     with r2:
         hist_color = st.selectbox(
             "Price histogram — color by",
-            ["(none)", "property_type", "location_cluster", "bedrooms", "location"],
+            ["(none)", "property_type", "bedrooms", "location"],
             key="chart_hist_c",
         )
         hc = None if hist_color == "(none)" else hist_color
-        if hc == "location":
-            vc = d["location"].value_counts().head(8).index
-            plot_h = d[d["location"].isin(vc)]
-        else:
-            plot_h = d
+        plot_h = d[d["location"].isin(d["location"].value_counts().head(8).index)] if hc == "location" else d
         if len(plot_h) > 0:
-            if hc:
-                fig_h = px.histogram(
-                    plot_h,
-                    x="price",
-                    nbins=45,
-                    color=hc,
-                    title="Price distribution",
-                )
-            else:
-                fig_h = px.histogram(plot_h, x="price", nbins=45, title="Price distribution")
+            fig_h = px.histogram(plot_h, x="price", nbins=45, color=hc, title="Price distribution") if hc else px.histogram(plot_h, x="price", nbins=45, title="Price distribution")
             st.plotly_chart(fig_h, use_container_width=True)
         else:
             st.info("No rows for histogram.")
 
     r3, r4 = st.columns(2)
     with r3:
-        map_color = st.selectbox(
-            "Map — point color",
-            ["price", "property_type", "bedrooms", "location_cluster", "location"],
-            key="chart_map_c",
-        )
+        map_color = st.selectbox("Map — point color", ["price", "property_type", "bedrooms", "location"], key="chart_map_c")
         map_df = d.dropna(subset=["latitude", "longitude"])
         if len(map_df) > 0:
             sample = map_df.sample(min(1500, len(map_df)))
             if map_color == "bedrooms":
                 sample = sample.copy()
                 sample["bedrooms"] = sample["bedrooms"].astype(str)
-            if map_color == "location_cluster":
-                sample = sample.copy()
-                sample["location_cluster"] = sample["location_cluster"].astype(str)
             mfig = px.scatter_mapbox(
                 sample,
                 lat="latitude",
@@ -263,26 +307,16 @@ with tabs[1]:
             st.info("No geo data for map.")
 
     with r4:
-        share_mode = st.selectbox(
-            "Share chart",
-            ["Property type", "BHK (bedrooms)"],
-            key="chart_share",
-        )
+        share_mode = st.selectbox("Share chart", ["Property type", "BHK (bedrooms)"], key="chart_share")
         if len(d) > 0:
             if share_mode == "Property type":
                 tc = d["property_type"].value_counts().reset_index()
                 tc.columns = ["property_type", "count"]
-                st.plotly_chart(
-                    px.pie(tc, names="property_type", values="count", title="Property type share"),
-                    use_container_width=True,
-                )
+                st.plotly_chart(px.pie(tc, names="property_type", values="count", title="Property type share"), use_container_width=True)
             else:
                 bc = d["bhk_label"].value_counts().reset_index()
                 bc.columns = ["bhk", "count"]
-                st.plotly_chart(
-                    px.bar(bc, x="bhk", y="count", title="BHK distribution", text_auto=True),
-                    use_container_width=True,
-                )
+                st.plotly_chart(px.bar(bc, x="bhk", y="count", title="BHK distribution", text_auto=True), use_container_width=True)
         else:
             st.info("No rows for share chart.")
 
@@ -293,56 +327,30 @@ with tabs[1]:
 
 with tabs[2]:
     st.subheader("Recommendations near a location")
-    st.caption(
-        "Pick a city, then drill into a smaller area (street / zipcode / cluster), "
-        "apply a nearby radius, and rank similar homes from that micro-area."
-    )
+    st.caption("Pick a city, drill into street or zipcode, set radius, then get similar nearby listings.")
 
     loc_list = sorted(df["location"].dropna().unique().tolist())
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         reco_location = st.selectbox("City / Location", loc_list, key="reco_loc")
     with c2:
-        micro_mode = st.selectbox(
-            "Drill-down by",
-            ["Street", "Zipcode", "Area cluster"],
-            key="reco_micro_mode",
-        )
+        micro_mode = st.selectbox("Drill-down by", ["Street", "Zipcode"], key="reco_micro_mode")
     with c3:
         radius_label = st.selectbox("Nearby radius", ["1 mile", "3 miles", "5 miles", "10 miles"], key="reco_rad")
     with c4:
         top_k = st.slider("How many recommendations", 3, 20, 8, key="reco_k")
 
     miles = float(radius_label.split()[0])
-
     sub_loc = df[df["location"] == reco_location]
     if len(sub_loc) == 0:
         st.error("No rows for that location.")
     else:
-        if micro_mode == "Street":
-            micro_col = "street"
-        elif micro_mode == "Zipcode":
-            micro_col = "zipcode"
-        else:
-            micro_col = "location_cluster"
-
-        micro_vals = (
-            sub_loc[micro_col]
-            .fillna("(unknown)")
-            .astype(str)
-            .value_counts()
-            .head(100)
-            .index.tolist()
-        )
+        micro_col = "street" if micro_mode == "Street" else "zipcode"
+        micro_vals = sub_loc[micro_col].fillna("(unknown)").astype(str).value_counts().head(100).index.tolist()
         if not micro_vals:
             st.error(f"No {micro_mode.lower()} values found inside {reco_location}.")
         else:
-            reco_micro = st.selectbox(
-                f"{micro_mode} in {reco_location}",
-                micro_vals,
-                key="reco_micro_value",
-            )
-
+            reco_micro = st.selectbox(f"{micro_mode} in {reco_location}", micro_vals, key="reco_micro_value")
             sub_micro = sub_loc[sub_loc[micro_col].fillna("(unknown)").astype(str) == reco_micro]
             lat0 = float(sub_micro["latitude"].median())
             lon0 = float(sub_micro["longitude"].median())
@@ -352,14 +360,10 @@ with tabs[2]:
             near_mask = (dist_all <= miles) & same_loc & same_micro
             if near_mask.sum() < 2:
                 near_mask = (dist_all <= miles) & same_loc
-                st.warning(
-                    "Few listings in this micro-area within radius — expanded to same city within radius."
-                )
+                st.warning("Few listings in this micro-area — expanded to same city within radius.")
             if near_mask.sum() < 2:
                 near_mask = dist_all <= miles
-                st.warning(
-                    "Still too few in city-radius — expanded to any listing within radius."
-                )
+                st.warning("Expanded to any listing within radius.")
             near_pos = np.where(near_mask)[0]
             if len(near_pos) == 0:
                 st.error("No listings within that radius — try a larger radius or another location.")
@@ -373,29 +377,12 @@ with tabs[2]:
                 d_cent = _haversine_miles(pd.Series(cand_lat), pd.Series(cand_lon), lat0, lon0)
                 anchor_pos = int(near_pos[np.argmin(d_cent)])
 
-                preview_cols = [
-                    c
-                    for c in [
-                        "price",
-                        "bedrooms",
-                        "bathrooms",
-                        "sqft",
-                        "location",
-                        "street",
-                        "property_type",
-                        "listing_url",
-                    ]
-                    if c in df.columns
-                ]
+                preview_cols = [c for c in ["price", "bedrooms", "bathrooms", "sqft", "location", "street", "property_type", "listing_url"] if c in df.columns]
                 with st.expander("Anchor listing (nearest to area center within radius)", expanded=False):
                     st.dataframe(df.iloc[[anchor_pos]][preview_cols], use_container_width=True)
 
-                mtime = DATA_PATH.stat().st_mtime
-                blocks = _recommender_blocks_cached(str(DATA_PATH), mtime)
-
+                blocks = _recommender_blocks_cached(str(DATA_PATH), DATA_PATH.stat().st_mtime)
                 others = np.array([i for i in near_pos if i != anchor_pos], dtype=int)
-                if len(others) == 0:
-                    st.info("Only one listing in this radius — increase radius to get recommendations.")
 
                 if st.button("Get recommendations", type="primary", key="reco_run"):
                     if len(others) == 0:
@@ -403,21 +390,12 @@ with tabs[2]:
                     else:
                         with st.spinner("Scoring similarity within radius…"):
                             scores = similarity_scores_for_row(blocks, anchor_pos)
-                            cand_scores = scores[others]
-                            order_local = np.argsort(-cand_scores)
-                            take = min(top_k, len(order_local))
-                            picked_pos = others[order_local[:take]]
+                            order_local = np.argsort(-scores[others])
+                            picked_pos = others[order_local[: min(top_k, len(others))]]
                             recs = df.iloc[picked_pos][preview_cols].copy()
                             recs["similarity"] = scores[picked_pos]
                             recs["distance_mi"] = dist_all[picked_pos]
                             st.session_state["reco_near_table"] = recs
-                            st.session_state["reco_near_params"] = (
-                                reco_location,
-                                micro_mode,
-                                reco_micro,
-                                radius_label,
-                                top_k,
-                            )
 
                 if "reco_near_table" in st.session_state:
                     st.subheader("Recommended nearby listings")
@@ -425,16 +403,17 @@ with tabs[2]:
 
                 map_d = df.iloc[near_pos].dropna(subset=["latitude", "longitude"])
                 if len(map_d) > 0:
-                    st.caption("Map: listings in radius (sample). Area center shown in metrics above.")
                     samp = map_d.sample(min(400, len(map_d)))
-                    figm = px.scatter_mapbox(
-                        samp,
-                        lat="latitude",
-                        lon="longitude",
-                        color="price",
-                        hover_name="location",
-                        zoom=10,
-                        mapbox_style="carto-positron",
-                        title=f"Near {reco_location} / {reco_micro} (~{miles:g} mi)",
+                    st.plotly_chart(
+                        px.scatter_mapbox(
+                            samp,
+                            lat="latitude",
+                            lon="longitude",
+                            color="price",
+                            hover_name="location",
+                            zoom=10,
+                            mapbox_style="carto-positron",
+                            title=f"Near {reco_location} / {reco_micro} (~{miles:g} mi)",
+                        ),
+                        use_container_width=True,
                     )
-                    st.plotly_chart(figm, use_container_width=True)
