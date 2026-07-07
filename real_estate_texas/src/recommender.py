@@ -13,7 +13,6 @@ import argparse
 import logging
 from pathlib import Path
 
-import joblib
 import numpy as np
 import pandas as pd
 from scipy.sparse import issparse
@@ -168,6 +167,8 @@ def save_recommender_artifact(
     output_pkl: str = ARTIFACT_PATH,
     max_rows: int = MAX_ROWS_FOR_ARTIFACT,
 ) -> Path | None:
+    import joblib
+
     root = Path(__file__).resolve().parents[1]
     path = root / data_csv
     df = pd.read_csv(path, low_memory=False)
@@ -189,6 +190,8 @@ def save_recommender_artifact(
 
 
 def load_similarity_matrix(root: Path) -> tuple[np.ndarray | None, int]:
+    import joblib
+
     p = root / ARTIFACT_PATH
     if not p.exists():
         return None, 0

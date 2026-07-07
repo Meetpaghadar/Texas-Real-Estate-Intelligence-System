@@ -11,8 +11,6 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from src.recommender import encode_similarity_blocks, similarity_scores_for_row
-
 _R_MI = 3958.7613
 HOUSTON_LAT, HOUSTON_LON = 29.7604, -95.3698
 
@@ -161,6 +159,8 @@ def load_model():
 
 @st.cache_data(show_spinner="Preparing recommender encodings (one-time per data refresh)…")
 def _recommender_blocks_cached(data_mtime: float, n_rows: int) -> dict:
+    from src.recommender import encode_similarity_blocks
+
     del n_rows  # bust cache when row count changes
     return encode_similarity_blocks(load_data())
 
@@ -428,6 +428,8 @@ with tabs[2]:
                         st.warning("Not enough listings in radius to compare.")
                     else:
                         with st.spinner("Scoring similarity within radius…"):
+                            from src.recommender import similarity_scores_for_row
+
                             blocks = _recommender_blocks_cached(
                                 DATA_PATH.stat().st_mtime,
                                 len(df),
