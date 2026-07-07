@@ -129,6 +129,21 @@ def load_data() -> pd.DataFrame:
     return pd.read_csv(DATA_PATH, low_memory=False).reset_index(drop=True)
 
 
+@st.cache_data
+def load_enriched_data() -> pd.DataFrame:
+    """Load once and add UI helper columns (avoids recomputing on every rerun)."""
+    out = load_data().copy()
+    if "address" in out.columns:
+        out["street"] = out["address"].fillna("").astype(str).str.split(",").str[0].str.strip()
+        out.loc[out["street"].eq(""), "street"] = "(no address)"
+    else:
+        out["street"] = "(no address)"
+    out["bhk_label"] = out["bedrooms"].apply(
+        lambda x: "5+ BHK" if pd.notna(x) and float(x) >= 5 else (f"{int(x)} BHK" if pd.notna(x) else "Unknown")
+    )
+    return out
+
+
 @st.cache_resource
 def load_model():
     if not MODEL_PATH.exists():
@@ -145,25 +160,16 @@ def load_model():
 
 
 @st.cache_data(show_spinner="Preparing recommender encodings (one-time per data refresh)…")
-def _recommender_blocks_cached(path_str: str, mtime: float) -> dict:
-    df_enc = pd.read_csv(Path(path_str), low_memory=False).reset_index(drop=True)
-    return encode_similarity_blocks(df_enc)
+def _recommender_blocks_cached(data_mtime: float, n_rows: int) -> dict:
+    del n_rows  # bust cache when row count changes
+    return encode_similarity_blocks(load_data())
 
 
-df = load_data()
-package = load_model()
+with st.spinner("Loading dataset and model…"):
+    df = load_enriched_data()
+    package = load_model()
 pipeline = package["pipeline"]
 feature_columns = list(package["feature_columns"])
-
-if "address" in df.columns:
-    df["street"] = df["address"].fillna("").astype(str).str.split(",").str[0].str.strip()
-    df.loc[df["street"].eq(""), "street"] = "(no address)"
-else:
-    df["street"] = "(no address)"
-
-df["bhk_label"] = df["bedrooms"].apply(
-    lambda x: "5+ BHK" if pd.notna(x) and float(x) >= 5 else (f"{int(x)} BHK" if pd.notna(x) else "Unknown")
-)
 
 tabs = st.tabs(["Prediction", "Analysis", "Recommendations"])
 
@@ -345,10 +351,14 @@ with tabs[1]:
         else:
             st.info("No rows for share chart.")
 
-    wc_text = " ".join(d["description"].fillna("").astype(str).tolist())
-    if wc_text.strip():
-        wc = WordCloud(width=900, height=320, background_color="white").generate(wc_text)
-        st.image(wc.to_array(), caption="Description keywords (filtered slice)")
+    if st.checkbox("Show description word cloud", value=False, key="wc_show"):
+        wc_text = " ".join(d["description"].fillna("").astype(str).tolist()) if "description" in d.columns else ""
+        if wc_text.strip():
+            with st.spinner("Building word cloud…"):
+                wc = WordCloud(width=900, height=320, background_color="white").generate(wc_text)
+            st.image(wc.to_array(), caption="Description keywords (filtered slice)")
+        else:
+            st.info("No description text for the current filters.")
 
 with tabs[2]:
     st.subheader("Recommendations near a location")
@@ -406,7 +416,6 @@ with tabs[2]:
                 with st.expander("Anchor listing (nearest to area center within radius)", expanded=False):
                     st.dataframe(df.iloc[[anchor_pos]][preview_cols], use_container_width=True)
 
-                blocks = _recommender_blocks_cached(str(DATA_PATH), DATA_PATH.stat().st_mtime)
                 others = np.array([i for i in near_pos if i != anchor_pos], dtype=int)
 
                 if st.button("Get recommendations", type="primary", key="reco_run"):
@@ -414,6 +423,10 @@ with tabs[2]:
                         st.warning("Not enough listings in radius to compare.")
                     else:
                         with st.spinner("Scoring similarity within radius…"):
+                            blocks = _recommender_blocks_cached(
+                                DATA_PATH.stat().st_mtime,
+                                len(df),
+                            )
                             scores = similarity_scores_for_row(blocks, anchor_pos)
                             order_local = np.argsort(-scores[others])
                             picked_pos = others[order_local[: min(top_k, len(others))]]
