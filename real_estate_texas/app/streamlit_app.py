@@ -5,6 +5,7 @@ import joblib
 import numpy as np
 import pandas as pd
 import plotly.express as px
+import sklearn
 import streamlit as st
 from wordcloud import WordCloud
 
@@ -107,6 +108,19 @@ def build_prediction_row(
     return out[feature_columns].copy()
 
 
+def _coerce_prediction_dtypes(pred_df: pd.DataFrame, ref_df: pd.DataFrame, feature_columns: list[str]) -> pd.DataFrame:
+    """Match training dtypes so SimpleImputer/encoders do not fail at transform time."""
+    out = pred_df.copy()
+    for col in feature_columns:
+        if col not in ref_df.columns:
+            continue
+        if pd.api.types.is_numeric_dtype(ref_df[col]):
+            out[col] = pd.to_numeric(out[col], errors="coerce").astype(float)
+        else:
+            out[col] = out[col].astype(str)
+    return out[feature_columns]
+
+
 @st.cache_data
 def load_data() -> pd.DataFrame:
     if not DATA_PATH.exists():
@@ -120,7 +134,14 @@ def load_model():
     if not MODEL_PATH.exists():
         st.error("Model artifact not found. Run training first.")
         st.stop()
-    return joblib.load(MODEL_PATH)
+    pkg = joblib.load(MODEL_PATH)
+    trained_ver = pkg.get("sklearn_version")
+    if trained_ver and trained_ver != sklearn.__version__:
+        st.warning(
+            f"Model was trained with scikit-learn **{trained_ver}** but this app runs **{sklearn.__version__}**. "
+            f"Pin `scikit-learn=={trained_ver}` in requirements.txt and use Python 3.10."
+        )
+    return pkg
 
 
 @st.cache_data(show_spinner="Preparing recommender encodings (one-time per data refresh)…")
@@ -168,21 +189,25 @@ with tabs[0]:
     if st.button("Predict Price", type="primary"):
         pred_df = None
         try:
-            pred_df = build_prediction_row(
+            pred_df = _coerce_prediction_dtypes(
+                build_prediction_row(
+                    df,
+                    feature_columns,
+                    bedrooms=bedrooms,
+                    bathrooms=bathrooms,
+                    sqft=sqft,
+                    lot_size=lot_size,
+                    year_built=year_built,
+                    location=location,
+                    property_type=property_type,
+                    latitude=latitude,
+                    longitude=longitude,
+                    price_per_sqft=price_per_sqft,
+                    luxury_score=luxury_score,
+                    amenity_count=amenity_count,
+                ),
                 df,
                 feature_columns,
-                bedrooms=bedrooms,
-                bathrooms=bathrooms,
-                sqft=sqft,
-                lot_size=lot_size,
-                year_built=year_built,
-                location=location,
-                property_type=property_type,
-                latitude=latitude,
-                longitude=longitude,
-                price_per_sqft=price_per_sqft,
-                luxury_score=luxury_score,
-                amenity_count=amenity_count,
             )
             pred_log = pipeline.predict(pred_df)[0]
             prediction = float(np.expm1(pred_log))

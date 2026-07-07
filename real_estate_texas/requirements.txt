@@ -1,4 +1,4 @@
-# Root requirements (Streamlit Cloud reads this by default). Keep in sync with real_estate_texas/requirements.txt
+# Pinned for Streamlit Cloud — must match the sklearn version used to train models/pipeline.pkl
 numpy==1.26.4
 pandas==2.2.3
 scikit-learn==1.7.1
@@ -10,4 +10,3 @@ streamlit>=1.39.0
 matplotlib>=3.8.0
 seaborn>=0.13.0
 wordcloud>=1.9.3
-requests>=2.31.0

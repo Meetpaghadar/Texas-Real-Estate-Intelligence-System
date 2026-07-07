@@ -1,12 +1,14 @@
 import argparse
 import json
 import logging
+import sys
 from pathlib import Path
 from typing import Optional
 
 import joblib
 import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
@@ -186,6 +188,8 @@ def train_models(
         "model_name": best_name,
         "feature_columns": feature_cols,
         "pipeline": best_pipeline,
+        "sklearn_version": sklearn.__version__,
+        "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
     }
     joblib.dump(package, model_path)
     all_metrics["best_model"] = {"name": best_name, "r2": float(best_r2)}
