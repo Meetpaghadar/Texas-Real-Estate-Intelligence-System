@@ -50,6 +50,49 @@ def _default_for_column(df: pd.DataFrame, col: str):
     return mode.iloc[0] if len(mode) else ""
 
 
+def _location_defaults(df: pd.DataFrame, location: str) -> dict:
+    mask = df["location"] == location
+    if not mask.any():
+        mask = pd.Series(True, index=df.index)
+    sub = df.loc[mask]
+    pt_mode = sub["property_type"].mode(dropna=True)
+    return {
+        "latitude": float(sub["latitude"].median()),
+        "longitude": float(sub["longitude"].median()),
+        "price_per_sqft": float(sub["price_per_sqft"].median()),
+        "luxury_score": float(sub["luxury_score"].median()),
+        "amenity_count": int(sub["amenity_count"].median()),
+        "property_type": str(pt_mode.iloc[0]) if len(pt_mode) else str(df["property_type"].mode().iloc[0]),
+    }
+
+
+def _estimate_luxury_score(df: pd.DataFrame, sqft: float, price_per_sqft: float, amenity_count: int) -> float:
+    amenity_slots = 7
+    score = (
+        (sqft / max(float(df["sqft"].median()), 1.0))
+        + (price_per_sqft / max(float(df["price_per_sqft"].median()), 1.0))
+        + (amenity_count / amenity_slots)
+    ) / 3.0
+    return float(round(score * 10, 2))
+
+
+def _format_price(value: float) -> str:
+    if pd.isna(value):
+        return "—"
+    return f"${float(value):,.0f}"
+
+
+def _format_results_table(frame: pd.DataFrame) -> pd.DataFrame:
+    out = frame.copy()
+    if "price" in out.columns:
+        out["price"] = out["price"].map(_format_price)
+    if "similarity" in out.columns:
+        out["similarity"] = out["similarity"].map(lambda x: f"{float(x):.3f}")
+    if "distance_mi" in out.columns:
+        out["distance_mi"] = out["distance_mi"].map(lambda x: f"{float(x):.2f} mi")
+    return out
+
+
 def build_prediction_row(
     df: pd.DataFrame,
     feature_columns: list[str],
@@ -86,7 +129,7 @@ def build_prediction_row(
         "bath_per_bedroom": float(bathrooms / max(bedrooms, 1)),
         "location_target_enc": float(df.loc[loc_mask, "price"].median() if loc_mask.any() else df["price"].median()),
         "amenity_count": int(amenity_count),
-        "luxury_score": float(luxury_score),
+        "luxury_score": float(_estimate_luxury_score(df, sqft, price_per_sqft, amenity_count)),
         "luxury_x_sqft": float(luxury_score * np.log1p(max(sqft, 0))),
         "is_luxury_segment": int(luxury_score >= df["luxury_score"].quantile(0.8)),
         "dist_to_houston_mi": float(_haversine_miles(pd.Series([latitude]), pd.Series([longitude]), HOUSTON_LAT, HOUSTON_LON)[0]),
@@ -149,9 +192,10 @@ def load_enriched_data() -> pd.DataFrame:
 
 
 @st.cache_resource
-def load_model():
+def load_model(model_mtime: float):
     import joblib
 
+    del model_mtime
     if not MODEL_PATH.exists():
         st.error("Model artifact not found. Run training first.")
         st.stop()
@@ -175,7 +219,7 @@ def _recommender_blocks_cached(data_mtime: float, n_rows: int) -> dict:
 
 with st.spinner("Loading dataset and model…"):
     df = load_enriched_data()
-    package = load_model()
+    package = load_model(MODEL_PATH.stat().st_mtime)
 pipeline = package["pipeline"]
 feature_columns = list(package["feature_columns"])
 
@@ -183,6 +227,10 @@ tabs = st.tabs(["Prediction", "Analysis", "Recommendations"])
 
 with tabs[0]:
     st.subheader("Price Prediction")
+    loc_options = sorted(df["location"].dropna().unique().tolist())
+    default_loc = loc_options[0] if loc_options else ""
+    loc_defaults = _location_defaults(df, default_loc)
+
     col1, col2, col3 = st.columns(3)
     with col1:
         bedrooms = st.slider("Bedrooms", 1, 8, 3)
@@ -191,14 +239,27 @@ with tabs[0]:
         lot_size = st.slider("Lot Size", 600, 15000, 3200, 100)
     with col2:
         year_built = st.slider("Year Built", 1940, 2026, 2005, 1)
-        location = st.selectbox("Location", sorted(df["location"].dropna().unique().tolist()))
-        property_type = st.selectbox("Property Type", sorted(df["property_type"].dropna().unique().tolist()))
-        latitude = st.number_input("Latitude", value=float(df["latitude"].median()))
+        location = st.selectbox("Location", loc_options)
+        loc_defaults = _location_defaults(df, location)
+        pt_options = sorted(df.loc[df["location"] == location, "property_type"].dropna().unique().tolist())
+        if loc_defaults["property_type"] not in pt_options and pt_options:
+            pt_options = [loc_defaults["property_type"]] + pt_options
+        property_type = st.selectbox(
+            "Property Type",
+            pt_options or sorted(df["property_type"].dropna().unique().tolist()),
+        )
+        latitude = st.number_input("Latitude", value=loc_defaults["latitude"], format="%.4f")
     with col3:
-        longitude = st.number_input("Longitude", value=float(df["longitude"].median()))
-        price_per_sqft = st.number_input("Price per sqft", value=float(df["price_per_sqft"].median()))
-        luxury_score = st.number_input("Luxury score", value=float(df["luxury_score"].median()))
-        amenity_count = st.slider("Amenity count", 0, 10, int(df["amenity_count"].median()))
+        longitude = st.number_input("Longitude", value=loc_defaults["longitude"], format="%.4f")
+        price_per_sqft = st.number_input(
+            "Est. price / sqft (location median)",
+            value=loc_defaults["price_per_sqft"],
+            format="%.2f",
+            help="Uses the median $/sqft for the selected city. Adjust if you know the listing is above/below local average.",
+        )
+        amenity_count = st.slider("Amenity count", 0, 10, loc_defaults["amenity_count"])
+        luxury_preview = _estimate_luxury_score(df, sqft, price_per_sqft, amenity_count)
+        st.caption(f"Derived luxury score: **{luxury_preview:.2f}**")
 
     if st.button("Predict Price", type="primary"):
         pred_df = None
@@ -217,15 +278,20 @@ with tabs[0]:
                     latitude=latitude,
                     longitude=longitude,
                     price_per_sqft=price_per_sqft,
-                    luxury_score=luxury_score,
+                    luxury_score=luxury_preview,
                     amenity_count=amenity_count,
                 ),
                 df,
                 feature_columns,
             )
-            pred_log = pipeline.predict(pred_df)[0]
+            pred_log = float(pipeline.predict(pred_df)[0])
             prediction = float(np.expm1(pred_log))
-            st.success(f"Estimated property price: ${prediction:,.0f}")
+            if prediction < 1000:
+                st.error("Model returned an unrealistically low price. Try rebooting the app after the latest deploy.")
+            else:
+                loc_med = float(df.loc[df["location"] == location, "price"].median())
+                st.success(f"Estimated property price: **{_format_price(prediction)}**")
+                st.caption(f"Median price in {location}: {_format_price(loc_med)}")
         except Exception as exc:
             st.error(f"Prediction failed: {exc}")
             with st.expander("Debug (features sent to model)"):
@@ -273,7 +339,7 @@ with tabs[1]:
         d = d[d["property_type"] == filt_pt]
     d = d[(d["price"] >= min_price) & (d["price"] <= max_price)]
 
-    st.caption(f"Rows after filters: **{len(d):,}**")
+    st.caption(f"Rows after filters: **{len(d):,}** | Median price: **{_format_price(d['price'].median()) if len(d) else '—'}**")
 
     r1, r2 = st.columns(2)
     with r1:
@@ -299,10 +365,9 @@ with tabs[1]:
             plot_box = plot_box[plot_box["street"].isin(svc)]
             xcol = "street"
         if len(plot_box) > 0:
-            st.plotly_chart(
-                px.box(plot_box, x=xcol, y="price", title=f"Price by {box_group.replace('_', ' ')}"),
-                use_container_width=True,
-            )
+            fig_box = px.box(plot_box, x=xcol, y="price", title=f"Price by {box_group.replace('_', ' ')}")
+            fig_box.update_yaxes(tickprefix="$", tickformat=",.0f")
+            st.plotly_chart(fig_box, use_container_width=True)
         else:
             st.info("No rows for this chart with current filters.")
 
@@ -316,6 +381,7 @@ with tabs[1]:
         plot_h = d[d["location"].isin(d["location"].value_counts().head(8).index)] if hc == "location" else d
         if len(plot_h) > 0:
             fig_h = px.histogram(plot_h, x="price", nbins=45, color=hc, title="Price distribution") if hc else px.histogram(plot_h, x="price", nbins=45, title="Price distribution")
+            fig_h.update_xaxes(tickprefix="$", tickformat=",.0f")
             st.plotly_chart(fig_h, use_container_width=True)
         else:
             st.info("No rows for histogram.")
@@ -341,6 +407,8 @@ with tabs[1]:
                 mapbox_style="carto-positron",
                 title="Listings map",
             )
+            if map_color == "price":
+                mfig.update_coloraxes(colorbar_tickprefix="$", colorbar_tickformat=",.0f")
             st.plotly_chart(mfig, use_container_width=True)
         else:
             st.info("No geo data for map.")
@@ -426,8 +494,13 @@ with tabs[2]:
                 anchor_pos = int(near_pos[np.argmin(d_cent)])
 
                 preview_cols = [c for c in ["price", "bedrooms", "bathrooms", "sqft", "location", "street", "property_type", "listing_url"] if c in df.columns]
+                reco_ctx = f"{reco_location}|{reco_micro}|{miles}|{top_k}"
+                if st.session_state.get("reco_ctx") != reco_ctx:
+                    st.session_state.pop("reco_near_table", None)
+                    st.session_state["reco_ctx"] = reco_ctx
+
                 with st.expander("Anchor listing (nearest to area center within radius)", expanded=False):
-                    st.dataframe(df.iloc[[anchor_pos]][preview_cols], use_container_width=True)
+                    st.dataframe(_format_results_table(df.iloc[[anchor_pos]][preview_cols]), use_container_width=True)
 
                 others = np.array([i for i in near_pos if i != anchor_pos], dtype=int)
 
@@ -452,21 +525,20 @@ with tabs[2]:
 
                 if "reco_near_table" in st.session_state:
                     st.subheader("Recommended nearby listings")
-                    st.dataframe(st.session_state["reco_near_table"], use_container_width=True)
+                    st.dataframe(_format_results_table(st.session_state["reco_near_table"]), use_container_width=True)
 
                 map_d = df.iloc[near_pos].dropna(subset=["latitude", "longitude"])
                 if len(map_d) > 0:
                     samp = map_d.sample(min(400, len(map_d)))
-                    st.plotly_chart(
-                        px.scatter_mapbox(
-                            samp,
-                            lat="latitude",
-                            lon="longitude",
-                            color="price",
-                            hover_name="location",
-                            zoom=10,
-                            mapbox_style="carto-positron",
-                            title=f"Near {reco_location} / {reco_micro} (~{miles:g} mi)",
-                        ),
-                        use_container_width=True,
+                    map_fig = px.scatter_mapbox(
+                        samp,
+                        lat="latitude",
+                        lon="longitude",
+                        color="price",
+                        hover_name="location",
+                        zoom=10,
+                        mapbox_style="carto-positron",
+                        title=f"Near {reco_location} / {reco_micro} (~{miles:g} mi)",
                     )
+                    map_fig.update_coloraxes(colorbar_tickprefix="$", colorbar_tickformat=",.0f")
+                    st.plotly_chart(map_fig, use_container_width=True)

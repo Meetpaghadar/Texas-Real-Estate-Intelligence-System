@@ -184,6 +184,34 @@ def train_models(
             best_pipeline = search.best_estimator_
 
     assert best_pipeline is not None
+    # Prefer sklearn tree models for deploy: XGBoost pickles often break across runtime versions.
+    deploy_candidates = ["random_forest", "linear_regression"]
+    if best_name == "xgboost_or_gbm" and "random_forest" in all_metrics:
+        rf_r2 = all_metrics["random_forest"]["r2"]
+        if rf_r2 >= best_r2 - 0.005:
+            logger.info(
+                "Using random_forest for deployment artifact (R2 %.4f vs xgboost %.4f).",
+                rf_r2,
+                best_r2,
+            )
+            rf_pipe = Pipeline(steps=[("preprocessor", preprocessor), ("model", RandomForestRegressor(random_state=42, n_jobs=-1))])
+            rf_search = GridSearchCV(
+                rf_pipe,
+                {
+                    "model__n_estimators": [300],
+                    "model__max_depth": [20, None],
+                    "model__min_samples_split": [2],
+                },
+                cv=cv,
+                scoring="r2",
+                n_jobs=-1,
+                verbose=0,
+            )
+            rf_search.fit(X_train, y_train)
+            best_name = "random_forest"
+            best_pipeline = rf_search.best_estimator_
+            best_r2 = r2_score(np.expm1(y_test), np.expm1(rf_search.predict(X_test)))
+
     package = {
         "model_name": best_name,
         "feature_columns": feature_cols,
@@ -192,6 +220,11 @@ def train_models(
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
     }
     joblib.dump(package, model_path)
+    # Verify artifact round-trips (catches broken XGBoost pickles on load).
+    reloaded = joblib.load(model_path)
+    chk = np.expm1(reloaded["pipeline"].predict(X_test[:5]))
+    if float(np.nanmedian(chk)) < 1000:
+        raise RuntimeError("Saved model failed sanity check after reload; predictions look invalid.")
     all_metrics["best_model"] = {"name": best_name, "r2": float(best_r2)}
     metrics_path.write_text(json.dumps(all_metrics, indent=2), encoding="utf-8")
     logger.info("Saved best model '%s' to %s", best_name, model_path)
