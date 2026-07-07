@@ -219,7 +219,7 @@ def train_models(
         "sklearn_version": sklearn.__version__,
         "python_version": f"{sys.version_info.major}.{sys.version_info.minor}",
     }
-    joblib.dump(package, model_path)
+    joblib.dump(package, model_path, compress=3)
     # Verify artifact round-trips (catches broken XGBoost pickles on load).
     reloaded = joblib.load(model_path)
     chk = np.expm1(reloaded["pipeline"].predict(X_test[:5]))
