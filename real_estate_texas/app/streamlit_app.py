@@ -1,13 +1,11 @@
 from pathlib import Path
 import sys
 
-import joblib
 import numpy as np
 import pandas as pd
 import plotly.express as px
 import sklearn
 import streamlit as st
-from wordcloud import WordCloud
 
 ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
@@ -146,6 +144,8 @@ def load_enriched_data() -> pd.DataFrame:
 
 @st.cache_resource
 def load_model():
+    import joblib
+
     if not MODEL_PATH.exists():
         st.error("Model artifact not found. Run training first.")
         st.stop()
@@ -354,9 +354,14 @@ with tabs[1]:
     if st.checkbox("Show description word cloud", value=False, key="wc_show"):
         wc_text = " ".join(d["description"].fillna("").astype(str).tolist()) if "description" in d.columns else ""
         if wc_text.strip():
-            with st.spinner("Building word cloud…"):
-                wc = WordCloud(width=900, height=320, background_color="white").generate(wc_text)
-            st.image(wc.to_array(), caption="Description keywords (filtered slice)")
+            try:
+                from wordcloud import WordCloud
+            except ImportError:
+                st.error("Word cloud requires `wordcloud` in requirements.txt. Reboot the app after deploy.")
+            else:
+                with st.spinner("Building word cloud…"):
+                    wc = WordCloud(width=900, height=320, background_color="white").generate(wc_text)
+                st.image(wc.to_array(), caption="Description keywords (filtered slice)")
         else:
             st.info("No description text for the current filters.")
 
