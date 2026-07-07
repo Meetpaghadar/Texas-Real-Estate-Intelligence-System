@@ -1,6 +1,14 @@
 from pathlib import Path
 import sys
 
+_APP_DIR = Path(__file__).resolve().parent
+if str(_APP_DIR) not in sys.path:
+    sys.path.insert(0, str(_APP_DIR))
+
+from _bootstrap_deps import ensure_runtime_packages
+
+ensure_runtime_packages()
+
 import numpy as np
 import pandas as pd
 import plotly.express as px
