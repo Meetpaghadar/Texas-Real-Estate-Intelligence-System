@@ -1,0 +1,16 @@
+# Force conda on Streamlit Cloud with Python 3.10 (avoids broken 3.14 sklearn builds).
+name: texas_re
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - numpy=1.26.4
+  - pandas=2.2.3
+  - scipy=1.14.1
+  - scikit-learn=1.7.1
+  - joblib=1.4.2
+  - pip:
+      - plotly>=5.24.0
+      - streamlit>=1.39.0
+      - wordcloud>=1.9.3

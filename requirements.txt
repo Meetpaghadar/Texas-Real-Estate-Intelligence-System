@@ -1,4 +1,5 @@
-# Root requirements (fallback if app-dir file is not used). Keep in sync with real_estate_texas/app/requirements.txt
+# Root requirements (used if Cloud falls back to repo root).
+# Must deploy with Python 3.10 in Streamlit Advanced settings.
 joblib==1.4.2
 numpy==1.26.4
 pandas==2.2.3
