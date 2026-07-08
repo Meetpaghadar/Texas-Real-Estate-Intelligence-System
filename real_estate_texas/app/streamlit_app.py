@@ -12,7 +12,6 @@ ensure_runtime_packages()
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import sklearn
 import streamlit as st
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -110,8 +109,8 @@ def build_prediction_row(
     luxury_score: float,
     amenity_count: int,
 ) -> pd.DataFrame:
-    """Align inference row with training schema (all columns the fitted pipeline expects)."""
     loc_mask = df["location"] == location
+    lux = float(_estimate_luxury_score(df, sqft, price_per_sqft, amenity_count))
     row: dict = {
         "bedrooms": float(bedrooms),
         "bathrooms": float(bathrooms),
@@ -129,10 +128,12 @@ def build_prediction_row(
         "bath_per_bedroom": float(bathrooms / max(bedrooms, 1)),
         "location_target_enc": float(df.loc[loc_mask, "price"].median() if loc_mask.any() else df["price"].median()),
         "amenity_count": int(amenity_count),
-        "luxury_score": float(_estimate_luxury_score(df, sqft, price_per_sqft, amenity_count)),
-        "luxury_x_sqft": float(luxury_score * np.log1p(max(sqft, 0))),
-        "is_luxury_segment": int(luxury_score >= df["luxury_score"].quantile(0.8)),
-        "dist_to_houston_mi": float(_haversine_miles(pd.Series([latitude]), pd.Series([longitude]), HOUSTON_LAT, HOUSTON_LON)[0]),
+        "luxury_score": lux,
+        "luxury_x_sqft": float(lux * np.log1p(max(sqft, 0))),
+        "is_luxury_segment": int(lux >= df["luxury_score"].quantile(0.8)),
+        "dist_to_houston_mi": float(
+            _haversine_miles(pd.Series([latitude]), pd.Series([longitude]), HOUSTON_LAT, HOUSTON_LON)[0]
+        ),
     }
     cent_lat = float(df.loc[loc_mask, "latitude"].median()) if loc_mask.any() else float(latitude)
     cent_lon = float(df.loc[loc_mask, "longitude"].median()) if loc_mask.any() else float(longitude)
@@ -156,7 +157,6 @@ def build_prediction_row(
 
 
 def _coerce_prediction_dtypes(pred_df: pd.DataFrame, ref_df: pd.DataFrame, feature_columns: list[str]) -> pd.DataFrame:
-    """Match training dtypes so SimpleImputer/encoders do not fail at transform time."""
     out = pred_df.copy()
     for col in feature_columns:
         if col not in ref_df.columns:
@@ -168,7 +168,7 @@ def _coerce_prediction_dtypes(pred_df: pd.DataFrame, ref_df: pd.DataFrame, featu
     return out[feature_columns]
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_data() -> pd.DataFrame:
     if not DATA_PATH.exists():
         st.error("Feature dataset not found. Run the training pipeline first.")
@@ -176,24 +176,27 @@ def load_data() -> pd.DataFrame:
     return pd.read_csv(DATA_PATH, low_memory=False).reset_index(drop=True)
 
 
-@st.cache_data
+@st.cache_data(show_spinner=False)
 def load_enriched_data() -> pd.DataFrame:
-    """Load once and add UI helper columns (avoids recomputing on every rerun)."""
     out = load_data().copy()
     if "address" in out.columns:
         out["street"] = out["address"].fillna("").astype(str).str.split(",").str[0].str.strip()
         out.loc[out["street"].eq(""), "street"] = "(no address)"
     else:
         out["street"] = "(no address)"
-    out["bhk_label"] = out["bedrooms"].apply(
-        lambda x: "5+ BHK" if pd.notna(x) and float(x) >= 5 else (f"{int(x)} BHK" if pd.notna(x) else "Unknown")
+    beds = out["bedrooms"]
+    out["bhk_label"] = np.where(
+        beds.isna(),
+        "Unknown",
+        np.where(beds.astype(float) >= 5, "5+ BHK", beds.astype(float).astype(int).astype(str) + " BHK"),
     )
     return out
 
 
-@st.cache_resource
+@st.cache_resource(show_spinner="Loading price model…")
 def load_model(model_mtime: float):
     import joblib
+    import sklearn
 
     del model_mtime
     if not MODEL_PATH.exists():
@@ -209,23 +212,26 @@ def load_model(model_mtime: float):
     return pkg
 
 
-@st.cache_data(show_spinner="Preparing recommender encodings (one-time per data refresh)…")
+@st.cache_data(show_spinner="Preparing recommender encodings…")
 def _recommender_blocks_cached(data_mtime: float, n_rows: int) -> dict:
     from src.recommender import encode_similarity_blocks
 
-    del n_rows  # bust cache when row count changes
+    del n_rows
     return encode_similarity_blocks(load_data())
 
 
-with st.spinner("Loading dataset and model…"):
+# Data only at startup — model loads when Predict is clicked.
+with st.spinner("Loading listings…"):
     df = load_enriched_data()
-    package = load_model(MODEL_PATH.stat().st_mtime)
-pipeline = package["pipeline"]
-feature_columns = list(package["feature_columns"])
 
-tabs = st.tabs(["Prediction", "Analysis", "Recommendations"])
+page = st.radio(
+    "Section",
+    ["Prediction", "Analysis", "Recommendations"],
+    horizontal=True,
+    label_visibility="collapsed",
+)
 
-with tabs[0]:
+if page == "Prediction":
     st.subheader("Price Prediction")
     loc_options = sorted(df["location"].dropna().unique().tolist())
     default_loc = loc_options[0] if loc_options else ""
@@ -264,6 +270,9 @@ with tabs[0]:
     if st.button("Predict Price", type="primary"):
         pred_df = None
         try:
+            package = load_model(MODEL_PATH.stat().st_mtime)
+            pipeline = package["pipeline"]
+            feature_columns = list(package["feature_columns"])
             pred_df = _coerce_prediction_dtypes(
                 build_prediction_row(
                     df,
@@ -287,7 +296,7 @@ with tabs[0]:
             pred_log = float(pipeline.predict(pred_df)[0])
             prediction = float(np.expm1(pred_log))
             if prediction < 1000:
-                st.error("Model returned an unrealistically low price. Try rebooting the app after the latest deploy.")
+                st.error("Model returned an unrealistically low price. Reboot after the latest deploy.")
             else:
                 loc_med = float(df.loc[df["location"] == location, "price"].median())
                 st.success(f"Estimated property price: **{_format_price(prediction)}**")
@@ -295,11 +304,9 @@ with tabs[0]:
         except Exception as exc:
             st.error(f"Prediction failed: {exc}")
             with st.expander("Debug (features sent to model)"):
-                st.write("Expected columns:", feature_columns)
-                if pred_df is not None:
-                    st.dataframe(pred_df)
+                st.write(pred_df)
 
-with tabs[1]:
+elif page == "Analysis":
     st.subheader("Market Analytics")
     st.caption("Use the filters below, then adjust each chart’s dropdown to change how it is grouped or colored.")
 
@@ -325,7 +332,7 @@ with tabs[1]:
     with fp2:
         max_price = st.slider("Max price", pmin, pmax, pmax, key="flt_pmax")
 
-    d = df.copy()
+    d = df
     if filt_location != "All":
         d = d[d["location"] == filt_location]
     if filt_street != "All":
@@ -339,7 +346,9 @@ with tabs[1]:
         d = d[d["property_type"] == filt_pt]
     d = d[(d["price"] >= min_price) & (d["price"] <= max_price)]
 
-    st.caption(f"Rows after filters: **{len(d):,}** | Median price: **{_format_price(d['price'].median()) if len(d) else '—'}**")
+    st.caption(
+        f"Rows after filters: **{len(d):,}** | Median price: **{_format_price(d['price'].median()) if len(d) else '—'}**"
+    )
 
     r1, r2 = st.columns(2)
     with r1:
@@ -348,7 +357,7 @@ with tabs[1]:
             ["location", "property_type", "bedrooms", "street"],
             key="chart_box_g",
         )
-        plot_box = d.copy()
+        plot_box = d
         if box_group == "location":
             vc = plot_box["location"].value_counts().head(18).index
             plot_box = plot_box[plot_box["location"].isin(vc)]
@@ -356,9 +365,7 @@ with tabs[1]:
         elif box_group == "property_type":
             xcol = "property_type"
         elif box_group == "bedrooms":
-            plot_box["bedrooms"] = plot_box["bedrooms"].apply(
-                lambda x: f"{int(x)} BHK" if pd.notna(x) else "Unknown"
-            )
+            plot_box = plot_box.assign(bedrooms=plot_box["bedrooms"].map(lambda x: f"{int(x)} BHK" if pd.notna(x) else "Unknown"))
             xcol = "bedrooms"
         else:
             svc = plot_box["street"].value_counts().head(15).index
@@ -380,7 +387,11 @@ with tabs[1]:
         hc = None if hist_color == "(none)" else hist_color
         plot_h = d[d["location"].isin(d["location"].value_counts().head(8).index)] if hc == "location" else d
         if len(plot_h) > 0:
-            fig_h = px.histogram(plot_h, x="price", nbins=45, color=hc, title="Price distribution") if hc else px.histogram(plot_h, x="price", nbins=45, title="Price distribution")
+            fig_h = (
+                px.histogram(plot_h, x="price", nbins=45, color=hc, title="Price distribution")
+                if hc
+                else px.histogram(plot_h, x="price", nbins=45, title="Price distribution")
+            )
             fig_h.update_xaxes(tickprefix="$", tickformat=",.0f")
             st.plotly_chart(fig_h, use_container_width=True)
         else:
@@ -391,15 +402,14 @@ with tabs[1]:
         map_color = st.selectbox("Map — point color", ["price", "property_type", "bedrooms", "location"], key="chart_map_c")
         map_df = d.dropna(subset=["latitude", "longitude"])
         if len(map_df) > 0:
-            sample = map_df.sample(min(1500, len(map_df)))
+            sample = map_df.sample(min(800, len(map_df)), random_state=42)
             if map_color == "bedrooms":
-                sample = sample.copy()
-                sample["bedrooms"] = sample["bedrooms"].astype(str)
+                sample = sample.assign(bedrooms=sample["bedrooms"].astype(str))
             mfig = px.scatter_mapbox(
                 sample,
                 lat="latitude",
                 lon="longitude",
-                color=map_color if map_color != "price" else "price",
+                color=map_color,
                 size="sqft",
                 hover_name="location",
                 hover_data=["street", "price", "bedrooms"] if "street" in sample.columns else ["price", "bedrooms"],
@@ -433,7 +443,7 @@ with tabs[1]:
             try:
                 from wordcloud import WordCloud
             except ImportError:
-                st.error("Word cloud requires `wordcloud` in requirements.txt. Reboot the app after deploy.")
+                st.error("Word cloud requires `wordcloud` in requirements.txt.")
             else:
                 with st.spinner("Building word cloud…"):
                     wc = WordCloud(width=900, height=320, background_color="white").generate(wc_text)
@@ -441,7 +451,7 @@ with tabs[1]:
         else:
             st.info("No description text for the current filters.")
 
-with tabs[2]:
+else:
     st.subheader("Recommendations near a location")
     st.caption("Pick a city, drill into street or zipcode, set radius, then get similar nearby listings.")
 
@@ -493,7 +503,11 @@ with tabs[2]:
                 d_cent = _haversine_miles(pd.Series(cand_lat), pd.Series(cand_lon), lat0, lon0)
                 anchor_pos = int(near_pos[np.argmin(d_cent)])
 
-                preview_cols = [c for c in ["price", "bedrooms", "bathrooms", "sqft", "location", "street", "property_type", "listing_url"] if c in df.columns]
+                preview_cols = [
+                    c
+                    for c in ["price", "bedrooms", "bathrooms", "sqft", "location", "street", "property_type", "listing_url"]
+                    if c in df.columns
+                ]
                 reco_ctx = f"{reco_location}|{reco_micro}|{miles}|{top_k}"
                 if st.session_state.get("reco_ctx") != reco_ctx:
                     st.session_state.pop("reco_near_table", None)
@@ -511,10 +525,7 @@ with tabs[2]:
                         with st.spinner("Scoring similarity within radius…"):
                             from src.recommender import similarity_scores_for_row
 
-                            blocks = _recommender_blocks_cached(
-                                DATA_PATH.stat().st_mtime,
-                                len(df),
-                            )
+                            blocks = _recommender_blocks_cached(DATA_PATH.stat().st_mtime, len(df))
                             scores = similarity_scores_for_row(blocks, anchor_pos)
                             order_local = np.argsort(-scores[others])
                             picked_pos = others[order_local[: min(top_k, len(others))]]
@@ -527,18 +538,19 @@ with tabs[2]:
                     st.subheader("Recommended nearby listings")
                     st.dataframe(_format_results_table(st.session_state["reco_near_table"]), use_container_width=True)
 
-                map_d = df.iloc[near_pos].dropna(subset=["latitude", "longitude"])
-                if len(map_d) > 0:
-                    samp = map_d.sample(min(400, len(map_d)))
-                    map_fig = px.scatter_mapbox(
-                        samp,
-                        lat="latitude",
-                        lon="longitude",
-                        color="price",
-                        hover_name="location",
-                        zoom=10,
-                        mapbox_style="carto-positron",
-                        title=f"Near {reco_location} / {reco_micro} (~{miles:g} mi)",
-                    )
-                    map_fig.update_coloraxes(colorbar_tickprefix="$", colorbar_tickformat=",.0f")
-                    st.plotly_chart(map_fig, use_container_width=True)
+                if st.checkbox("Show nearby map", value=False, key="reco_map_show"):
+                    map_d = df.iloc[near_pos].dropna(subset=["latitude", "longitude"])
+                    if len(map_d) > 0:
+                        samp = map_d.sample(min(300, len(map_d)), random_state=42)
+                        map_fig = px.scatter_mapbox(
+                            samp,
+                            lat="latitude",
+                            lon="longitude",
+                            color="price",
+                            hover_name="location",
+                            zoom=10,
+                            mapbox_style="carto-positron",
+                            title=f"Near {reco_location} / {reco_micro} (~{miles:g} mi)",
+                        )
+                        map_fig.update_coloraxes(colorbar_tickprefix="$", colorbar_tickformat=",.0f")
+                        st.plotly_chart(map_fig, use_container_width=True)
